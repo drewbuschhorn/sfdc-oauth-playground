@@ -1,24 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>OAuthPlayground</fullName>
-    <apiAccessLevel>Unrestricted</apiAccessLevel>
-    <namespacePrefix>oauthplayground</namespacePrefix>
     <types>
         <members>AuthController</members>
         <members>OAuth</members>
-        <members>OAuthTests</members>
         <members>TestController</members>
         <name>ApexClass</name>
     </types>
     <types>
-        <members>ApiTestPage</members>
-        <members>AuthPage</members>
         <members>CompleteAuth</members>
         <name>ApexPage</name>
-    </types>
-    <types>
-        <members>OAuth_Consumer_Playground</members>
-        <name>CustomApplication</name>
     </types>
     <types>
         <members>OAuthService__c.Access_Token_URL__c</members>
@@ -45,12 +36,6 @@
         <name>CustomObject</name>
     </types>
     <types>
-        <members>API_Tester</members>
-        <members>Authorize</members>
-        <members>OAuthService__c</members>
-        <name>CustomTab</name>
-    </types>
-    <types>
         <members>OAuthService__c-OAuth Service Layout</members>
         <members>OAuth_Token__c-OAuth Token Layout</members>
         <members>Saved_URL__c-Saved URL Layout</members>
@@ -60,5 +45,5 @@
         <members>OAuthService__c.All</members>
         <name>ListView</name>
     </types>
-    <version>16.0</version>
+    <version>25.0</version>
 </Package>

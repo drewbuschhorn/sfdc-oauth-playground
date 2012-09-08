@@ -17,6 +17,7 @@ global class OAuth {
 	public String message { get; set; }
 
 	public String callbackUrl {get; set; }
+	public String authUri {get; set; }
 	
 	public void setConsumerKey(String value) { consumerKey = value; }
 	public void setConsumerSecret(String value) { consumerSecret = value; }
@@ -30,7 +31,7 @@ global class OAuth {
 	public String newAuthorization(String serviceName) {
 
 		service = [SELECT request_token_url__c, access_token_url__c, consumer_key__c, 
-						  consumer_secret__c, authorization_url__c,
+						  consumer_secret__c, authorization_url__c,id,
 						  (select token__c, secret__c, isAccess__c FROM tokens__r WHERE owner__c=:UserInfo.getUserId() ) 
 						  FROM OAuthService__c WHERE name = :serviceName];
 		
@@ -48,84 +49,46 @@ global class OAuth {
 			}
 	
 			callbackUrl = EncodingUtil.urlEncode('https://'+ApexPages.currentPage().getHeaders().get('Host')+
-												 Page.CompleteAuth.getUrl(),'UTF-8');
+												 Page.CompleteAuth.getUrl()+'?sid='+service.id,'UTF-8');
 		}
+		consumerKey = service.consumer_key__c;
+		consumerSecret = service.consumer_secret__c;				
 				
 		Http h = new Http();
 		HttpRequest req = new HttpRequest();
 		req.setMethod('GET');
-		req.setEndpoint(service.request_token_url__c);
+				
+		authUri = service.authorization_url__c+'?client_id='+EncodingUtil.urlEncode(service.consumer_key__c,'UTF-8')+'&redirect_uri='+EncodingUtil.urlDecode(callbackUrl,'UTF-8')+'&type='+EncodingUtil.urlEncode('web','UTF-8')+'&response_type='+EncodingUtil.urlEncode('code','UTF-8');
+		//req.setEndpoint(authUri);
 		System.debug('Request body set to: '+req.getBody());
-		consumerKey = service.consumer_key__c;
-		consumerSecret = service.consumer_secret__c;
-		sign(req);
-		HttpResponse res = null;
-		if(serviceName=='test1234') {
-			// testing
-			res = new HttpResponse();
-		} else {
-			res = h.send(req);
-		}
-		System.debug('Response from request token request: ('+res.getStatusCode()+')'+res.getBody());
-		if(res.getStatusCode()>299) {
-			message = 'Failed getting a request token. HTTP Code = '+res.getStatusCode()+
-					  '. Message: '+res.getStatus()+'. Response Body: '+res.getBody();
-			return null;
-		}
-		String resParams = serviceName == 'test1234' ? 
-			'oauth_token=token&oauth_token_secret=token_secret' : res.getBody();
-		Map<String,String> rp = getUrlParams(resParams);
-		OAuth_Token__c t = new OAuth_Token__c();
-		t.owner__c = UserInfo.getUserId();
-		t.OAuth_Service__c = service.id;
-		t.token__c = rp.get('oauth_token');
-		t.secret__c = rp.get('oauth_token_secret');
-		t.isAccess__c = false;
-
-		delete service.tokens__r;
-
-		insert t;
 		
-		System.debug('Got request token: '+t.token__c+'('+rp.get('oauth_token')+')');
-		
-		if(service.authorization_url__c.contains('?')) {
-			return service.authorization_url__c+'&oauth_token='+EncodingUtil.urlDecode(t.token__c,'UTF-8')+'&oauth_consumer_key='+service.consumer_key__c;
-		} else {
-			return service.authorization_url__c+'?oauth_token='+EncodingUtil.urlDecode(t.token__c,'UTF-8')+'&oauth_consumer_key='+service.consumer_key__c;
-		}
+		return authUri;
 	}
 	
-	public boolean completeAuthorization(String token, String verifier) {
-		System.debug('Completing authorization for request token '+token+' with verifier '+verifier);
-		OAuth_Token__c t = null;
-		try {
-			t =
-			[SELECT OAuth_Service__r.name, OAuth_Service__r.access_token_url__c, OAuth_Service__r.consumer_key__c, 
-			 OAuth_Service__r.consumer_secret__c, token__c, secret__c, isAccess__c FROM OAuth_Token__c 
-			 WHERE owner__c=:UserInfo.getUserId() AND token__c = :EncodingUtil.urlEncode(token,'UTF-8') AND isAccess__c = false];
-		} catch(System.QueryException e) {
-			message = 'Unknown request token: '+token+'. Restart authorization process';
-			System.debug(message);
-			return false;
-			
-		}
+	public boolean completeAuthorization(String code, String serviceId) {
+		code = EncodingUtil.urlDecode(code,'UTF-8');
+		System.debug('Completing authorization for request code '+code);
+		service = [SELECT request_token_url__c, access_token_url__c, consumer_key__c, 
+						  consumer_secret__c, authorization_url__c,id,name
+						  FROM OAuthService__c WHERE id = :serviceId];
 
-		service = t.Oauth_Service__r;
-		
+		callbackUrl = EncodingUtil.urlEncode('https://'+ApexPages.currentPage().getHeaders().get('Host')+
+												 Page.CompleteAuth.getUrl()+'?sid='+service.id,'UTF-8');		
 		consumerKey = service.Consumer_Key__c;
 		consumerSecret = service.Consumer_Secret__c;
-		this.token = t.token__c;
-		tokenSecret = t.secret__c;
-		if(verifier!=null) {
-			this.verifier = EncodingUtil.urlEncode(verifier,'UTF-8');
-		}
 		
 		Http h = new Http();
 		HttpRequest req = new HttpRequest();
 		req.setMethod('POST');
+		//req.setCompressed(true);
 		req.setEndpoint(service.access_token_url__c);
-		req.setBody('');
-		sign(req);
+		req.setBody('grant_type=authorization_code'+
+                    '&type=web_server'+
+                    '&client_id='+consumerKey+
+                    '&client_secret='+consumerSecret+
+                    '&redirect_uri='+callbackUrl+
+                    '&code='+code);
+		
 		HttpResponse res = null;
 		if(service.name=='test1234') {
 			res = new HttpResponse();
@@ -142,17 +105,30 @@ global class OAuth {
 			'oauth_token=token&oauth_token_secret=token_secret' : res.getBody();
 
 		Map<String,String> rp = new Map<String,String>();
-		for(String s : resParams.split('&')) {
-			List<String> kv = s.split('=');
-			rp.put(kv[0],kv[1]);
-			System.debug('Access token response param: '+kv[0]+'='+kv[1]);
+		JSONParser parser = System.JSON.createParser(res.getBody());
+		// Parse JSON response to get individual field values.
+		String token = null;
+		while(parser.nextToken() != null)
+		{
+		   if((parser.getCurrentToken() == JSONToken.FIELD_NAME) && (parser.getText() == 'access_token')){ 
+		      // store values as you walk the JSON
+		      parser.nextToken();
+		      token = parser.getText();
+		   }
 		}
 		
-		t.token__c = rp.get('oauth_token');
-		t.secret__c = rp.get('oauth_token_secret');
-		t.isAccess__c = true;
+		if(token == null){
+			message = 'Failed getting an access token. 2 - HTTP Code = '+res.getStatusCode()+'. Message: '+res.getStatus()+'. Response Body: '+res.getBody();
+			return false;
+		}
 		
-		update t;
+		OAuth_Token__c t = new OAuth_Token__c();
+		t.owner__c = UserInfo.getUserId();
+		t.OAuth_Service__c = service.id;
+		t.token__c = token;
+		t.secret__c = service.id;
+		t.isAccess__c = true;
+		insert t;
 		
 		return true;
 	}
@@ -220,10 +196,10 @@ global class OAuth {
 		if(verifier!=null) {
 			parameters.put('oauth_verifier',verifier);
 		}
-		parameters.put('oauth_signature_method','HMAC-SHA1');
-		parameters.put('oauth_timestamp',timestamp);
-		parameters.put('oauth_nonce',nonce);
-		parameters.put('oauth_callback',callbackUrl);
+		//parameters.put('oauth_signature_method','HMAC-SHA1');
+		//parameters.put('oauth_timestamp',timestamp);
+		//parameters.put('oauth_nonce',nonce);
+		//parameters.put('oauth_callback',callbackUrl);
 	}
 
 	private Map<String,String> getUrlParams(String value) {

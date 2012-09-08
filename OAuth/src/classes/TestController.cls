@@ -46,6 +46,16 @@ public class TestController {
     	}
     	set; 
     }
+    public String selectedServiceId { 
+    	get {
+    		if(selectedServiceId==null && oauthServices.size()>0) {
+    			selectedServiceId = oauthServices.values()[0].id;
+    		}
+    		return selectedServiceId;
+    	}
+    	set; 
+    }
+    
 
     public List<SelectOption> services {
         get {
@@ -88,6 +98,13 @@ public class TestController {
 
     public PageReference execute() {
         System.debug('Method: '+method+', Service: '+selectedService+'. URL: '+url);
+        System.debug('selectedServiceId: '+selectedServiceId+', UserInfo.getUserId(): '+UserInfo.getUserId());
+        String sId = selectedServiceId;
+        String oId = UserInfo.getUserId();
+        
+        OAuth_Token__c t = [SELECT token__c FROM OAuth_Token__c 
+        WHERE OAuth_Service__c = :sId AND Owner__c = :oId];
+        
         Http h = new Http();
         HttpRequest req = new HttpRequest();
         req.setMethod(method);
@@ -106,7 +123,8 @@ public class TestController {
         	message=oa.message;
         	return null;
         }
-        oa.sign(req);
+        req.setEndpoint(req.getEndpoint()+'?access_token='+EncodingUtil.urlEncode(t.token__c,'UTF-8'));
+        //oa.sign(req);
         System.debug('Sending request...');
         HttpResponse res = h.send(req);
         body = res.getBody();

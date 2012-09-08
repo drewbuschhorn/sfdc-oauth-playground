@@ -1,6 +1,7 @@
 public with sharing class AuthController {
 
     public String service { get; set; }
+    public String token { get; set; }
     
     public String authUrl { get; set; }
     
@@ -36,16 +37,16 @@ public with sharing class AuthController {
     }
     
     public PageReference completeAuthorization() {
-        String token = ApexPages.currentPage().getParameters().get('oauth_token');
-        if(token!=null)
+        String code = ApexPages.currentPage().getParameters().get('code');
+        String service = ApexPages.currentPage().getParameters().get('sid');
+        if(code!=null&&service!=null)
         {
-            String verifier = ApexPages.currentPage().getParameters().get('oauth_verifier');
             OAuth oa = new OAuth();
-            authSuccess = oa.completeAuthorization(token,verifier);
+            authSuccess = oa.completeAuthorization(code,service);
             this.message = oa.message;
         }
         else {
-            message = 'Invalid request. Missing parameter oauth_token';
+            message = 'Invalid request. Missing parameter (oauth2) code';
         }
         return null;
     }
