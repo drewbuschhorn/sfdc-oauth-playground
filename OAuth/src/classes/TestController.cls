@@ -103,7 +103,7 @@ public class TestController {
         String oId = UserInfo.getUserId();
         
         OAuth_Token__c t = [SELECT token__c FROM OAuth_Token__c 
-        WHERE OAuth_Service__c = :sId AND Owner__c = :oId];
+        WHERE OAuth_Service__c = :sId AND Owner__c = :oId LIMIT 1];
         
         Http h = new Http();
         HttpRequest req = new HttpRequest();

@@ -66,7 +66,6 @@ global class OAuth {
 	}
 	
 	public boolean completeAuthorization(String code, String serviceId) {
-		code = EncodingUtil.urlDecode(code,'UTF-8');
 		System.debug('Completing authorization for request code '+code);
 		service = [SELECT request_token_url__c, access_token_url__c, consumer_key__c, 
 						  consumer_secret__c, authorization_url__c,id,name
@@ -87,7 +86,7 @@ global class OAuth {
                     '&client_id='+consumerKey+
                     '&client_secret='+consumerSecret+
                     '&redirect_uri='+callbackUrl+
-                    '&code='+code);
+                    '&code='+EncodingUtil.urlEncode(code,'UTF-8'));
 		
 		HttpResponse res = null;
 		if(service.name=='test1234') {
@@ -97,7 +96,7 @@ global class OAuth {
 			System.debug('Response from request token request: ('+res.getStatusCode()+')'+res.getBody());
 		}
 		if(res.getStatusCode()>299) {
-			message = 'Failed getting an access token. HTTP Code = '+res.getStatusCode()+'. Message: '+res.getStatus()+'. Response Body: '+res.getBody();
+			message = 'Failed getting an access token. HTTP Code = '+res.getStatusCode()+'. Message: '+res.getStatus()+'. Response Body: '+res.getBody()+' Code:'+code;
 			return false;
 		}
 
