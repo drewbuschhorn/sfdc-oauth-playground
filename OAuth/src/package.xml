@@ -16,11 +16,8 @@
         <members>OAuthService__c.Authorization_URL__c</members>
         <members>OAuthService__c.Consumer_Key__c</members>
         <members>OAuthService__c.Consumer_Secret__c</members>
-        <members>OAuthService__c.Request_Token_URL__c</members>
         <members>OAuth_Token__c.OAuth_Service__c</members>
         <members>OAuth_Token__c.Owner__c</members>
-        <members>OAuth_Token__c.isAccess__c</members>
-        <members>OAuth_Token__c.secret__c</members>
         <members>OAuth_Token__c.token__c</members>
         <members>Saved_URL__c.OAuth_Service__c</members>
         <members>Saved_URL__c.body__c</members>

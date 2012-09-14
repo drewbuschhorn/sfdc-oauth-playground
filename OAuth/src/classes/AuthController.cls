@@ -29,10 +29,10 @@ public with sharing class AuthController {
         authUrl = oa.newAuthorization(service);
         System.debug(authUrl);
         if(authUrl==null) {
-        	this.message = oa.message;
-        	return null;
+            this.message = oa.message;
+            return null;
         } else {
-        	return new PageReference(authUrl);
+            return new PageReference(authUrl);
         }
     }
     

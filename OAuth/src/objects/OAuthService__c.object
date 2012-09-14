@@ -74,15 +74,6 @@
         <type>Text</type>
         <unique>false</unique>
     </fields>
-    <fields>
-        <fullName>Request_Token_URL__c</fullName>
-        <externalId>false</externalId>
-        <label>Request Token URL</label>
-        <length>255</length>
-        <required>false</required>
-        <type>Text</type>
-        <unique>false</unique>
-    </fields>
     <label>OAuth Service</label>
     <listViews>
         <fullName>All</fullName>

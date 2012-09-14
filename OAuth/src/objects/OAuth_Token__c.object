@@ -61,24 +61,6 @@
         <type>Lookup</type>
     </fields>
     <fields>
-        <fullName>isAccess__c</fullName>
-        <defaultValue>false</defaultValue>
-        <description>If true, this is an access token. If false, it&apos;s a request token</description>
-        <externalId>false</externalId>
-        <inlineHelpText>If true, this is an access token. If false, it&apos;s a request token</inlineHelpText>
-        <label>isAccess</label>
-        <type>Checkbox</type>
-    </fields>
-    <fields>
-        <fullName>secret__c</fullName>
-        <externalId>false</externalId>
-        <label>secret</label>
-        <length>255</length>
-        <required>false</required>
-        <type>Text</type>
-        <unique>false</unique>
-    </fields>
-    <fields>
         <fullName>token__c</fullName>
         <externalId>false</externalId>
         <label>token</label>
