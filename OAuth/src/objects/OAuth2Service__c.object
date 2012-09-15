@@ -74,7 +74,7 @@
         <type>Text</type>
         <unique>false</unique>
     </fields>
-    <label>OAuth Service</label>
+    <label>OAuth2 Service</label>
     <listViews>
         <fullName>All</fullName>
         <filterScope>Everything</filterScope>
@@ -84,7 +84,7 @@
         <label>Service Name</label>
         <type>Text</type>
     </nameField>
-    <pluralLabel>OAuth Services</pluralLabel>
+    <pluralLabel>OAuth2 Services</pluralLabel>
     <searchLayouts/>
     <sharingModel>ReadWrite</sharingModel>
 </CustomObject>

@@ -1,6 +1,6 @@
-global class OAuth {
+global class OAuth2 {
 
-	private OAuthService__c service;
+	private OAuth2Service__c service;
 	private String token;
 	private String consumerKey;
 	private String consumerSecret;
@@ -26,10 +26,10 @@ global class OAuth {
 		service = [SELECT access_token_url__c, consumer_key__c, 
 						  consumer_secret__c, authorization_url__c,id,
 						  (select token__c FROM tokens__r WHERE owner__c=:UserInfo.getUserId() ) 
-						  FROM OAuthService__c WHERE name = :serviceName];
+						  FROM OAuth2Service__c WHERE name = :serviceName];
 		
 		if(service==null) {
-			System.debug('Couldn\'t find Oauth Service '+serviceName);
+			System.debug('Couldn\'t find OAuth2 Service '+serviceName);
 			message = 'Service '+serviceName+' was not found in the local configuration';
 			return null;
 		}
@@ -42,7 +42,7 @@ global class OAuth {
 			}
 	
 			callbackUrl = EncodingUtil.urlEncode('https://'+ApexPages.currentPage().getHeaders().get('Host')+
-												 Page.CompleteAuth.getUrl()+'?sid='+service.id,'UTF-8');
+												 Page.CompleteAuth2.getUrl()+'?sid='+service.id,'UTF-8');
 		}
 		consumerKey = service.consumer_key__c;
 		consumerSecret = service.consumer_secret__c;                
@@ -62,10 +62,10 @@ global class OAuth {
 		System.debug('Completing authorization for request code '+code);
 		service = [SELECT access_token_url__c, consumer_key__c, 
 						  consumer_secret__c, authorization_url__c,id,name
-						  FROM OAuthService__c WHERE id = :serviceId];
+						  FROM OAuth2Service__c WHERE id = :serviceId];
 
 		callbackUrl = EncodingUtil.urlEncode('https://'+ApexPages.currentPage().getHeaders().get('Host')+
-												 Page.CompleteAuth.getUrl()+'?sid='+service.id,'UTF-8');        
+												 Page.CompleteAuth2.getUrl()+'?sid='+service.id,'UTF-8');        
 		consumerKey = service.Consumer_Key__c;
 		consumerSecret = service.Consumer_Secret__c;
 		
@@ -94,7 +94,7 @@ global class OAuth {
 		}
 
 		String resParams = service.name == 'test1234' ? 
-			'oauth_token=token&oauth_token_secret=token_secret' : res.getBody();
+			'OAuth2_token=token&OAuth2_token_secret=token_secret' : res.getBody();
 
 		Map<String,String> rp = new Map<String,String>();
 		JSONParser parser = System.JSON.createParser(res.getBody());
@@ -114,9 +114,9 @@ global class OAuth {
 			return false;
 		}
 		
-		OAuth_Token__c t = new OAuth_Token__c();
+		OAuth2_Token__c t = new OAuth2_Token__c();
 		t.owner__c = UserInfo.getUserId();
-		t.OAuth_Service__c = service.id;
+		t.OAuth2_Service__c = service.id;
 		t.token__c = token;
 		insert t;
 		
@@ -124,12 +124,12 @@ global class OAuth {
 	}
 
 	public List<User> getUsersOfService(String serviceName) {
-		List<OAuth_Token__c> l =
-			[SELECT OAuth_Service__r.name, Owner__r.name FROM OAuth_Token__c 
-			 WHERE OAuth_Service__r.name= :serviceName];
+		List<OAuth2_Token__c> l =
+			[SELECT OAuth2_Service__r.name, Owner__r.name FROM OAuth2_Token__c 
+			 WHERE OAuth2_Service__r.name= :serviceName];
 			 
 		List<User> result = new List<User>();
-		for(OAuth_Token__c t : l) {
+		for(OAuth2_Token__c t : l) {
 			result.add(t.owner__r);
 		}
 		return result;
@@ -140,20 +140,20 @@ global class OAuth {
 	}
 
 	public boolean setService(String serviceName, ID userId) {
-		OAuth_Token__c t = null;
+		OAuth2_Token__c t = null;
 		try {
 			t =
-			[SELECT OAuth_Service__r.name, OAuth_Service__r.consumer_key__c, OAuth_Service__r.consumer_secret__c, 
-			 token__c FROM OAuth_Token__c 
-			 WHERE OAuth_Service__r.name= :serviceName AND owner__c=:userId];
+			[SELECT OAuth2_Service__r.name, OAuth2_Service__r.consumer_key__c, OAuth2_Service__r.consumer_secret__c, 
+			 token__c FROM OAuth2_Token__c 
+			 WHERE OAuth2_Service__r.name= :serviceName AND owner__c=:userId];
 		} catch(System.QueryException e) {
 			try {
-				// Two-legged OAuth - try to find match on serviceName
+				// Two-legged OAuth2 - try to find match on serviceName
 				service = [SELECT id, name, consumer_key__c, consumer_secret__c 
-				 FROM OAuthService__c 
+				 FROM OAuth2Service__c 
 				 WHERE name= :serviceName];
 				
-				System.debug('Preparing Two-legged OAuth request to service '+service.name);
+				System.debug('Preparing Two-legged OAuth2 request to service '+service.name);
 				
 				consumerKey = service.Consumer_Key__c;
 				consumerSecret = service.Consumer_Secret__c;
@@ -165,9 +165,9 @@ global class OAuth {
 				return false;
 			}
 		}
-		service = t.Oauth_Service__r;
+		service = t.OAuth2_Service__r;
 		
-		System.debug('Preparing OAuth request to service '+service.name);
+		System.debug('Preparing OAuth2 request to service '+service.name);
 		
 		consumerKey = service.Consumer_Key__c;
 		consumerSecret = service.Consumer_Secret__c;

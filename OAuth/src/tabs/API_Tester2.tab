@@ -3,5 +3,5 @@
     <label>API Tester</label>
     <mobileReady>false</mobileReady>
     <motif>Custom31: Car</motif>
-    <page>ApiTestPage</page>
+    <page>Api2TestPage</page>
 </CustomTab>

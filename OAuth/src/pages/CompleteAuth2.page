@@ -1,4 +1,4 @@
-<apex:page controller="AuthController" action="{!completeAuthorization}">
+<apex:page controller="Auth2Controller" action="{!completeAuthorization}">
     <apex:outputText rendered="{!authSuccess}" value="Authorization successful"/>
     <apex:outputText rendered="{!(!authSuccess)}" value="Not Authorized: {!message}"/>
 </apex:page>

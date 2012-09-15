@@ -3,5 +3,5 @@
     <label>Authorize</label>
     <mobileReady>false</mobileReady>
     <motif>Custom77: Locked</motif>
-    <page>AuthPage</page>
+    <page>Auth2Page</page>
 </CustomTab>
